@@ -18,6 +18,11 @@ function [AgentCharacteristics, SummaryStatistics, parameters] = ...
     SummaryStatistics.AgeDistributionPrevalence = zeros(length(parameters.ACDPrev)-1,parameters.Ntimesteps);
     SummaryStatistics.Contacts = cell(parameters.PopSize,parameters.Ntimesteps,2);
     
+    % Uncomment below 4 lines for household membership plots:
+%     SummaryStatistics.HHMembers = cell(parameters.NumberHouses,parameters.Ntimesteps);
+%     for j = 1: parameters.NumberHouses
+%        SummaryStatistics.HHMembers{j,1} = AgentCharacteristics.ID(AgentCharacteristics.CurrentHousehold==j);
+%     end
     
     % Calculate initial summary statistics
     SummaryStatistics = generate_summary_statistics(SummaryStatistics,1,parameters,AgentCharacteristics);
@@ -44,7 +49,7 @@ function [AgentCharacteristics, SummaryStatistics, parameters] = ...
         
         % If no infected agents left, stop simulation
         if sum(CurrentInfectious) + sum(CurrentExposed) == 0
-            break
+            break % Comment this line for household membership plots
         end
         
         CurrentImmune = AgentCharacteristics.Immune;
@@ -738,6 +743,11 @@ function SummaryStatistics = generate_summary_statistics(SummaryStatistics,times
     SummaryStatistics.PopSizeResidentsOnly(1,timestep) = length(AgentCharacteristics.ID(AgentCharacteristics.Residency==0));
     SummaryStatistics.AgeDistribution(timestep,:) = histcounts(AgentCharacteristics.Age, parameters.ACD);
     SummaryStatistics.AgeDistributionOneYear(:,timestep) = histcounts(AgentCharacteristics.Age, 0:parameters.AgeDeath);
+    % Uncomment below 3 lines for household membership plots:
+%     for j = 1: parameters.NumberHouses
+%         SummaryStatistics.HHMembers{j,timestep} = AgentCharacteristics.ID(AgentCharacteristics.CurrentHousehold==j);
+%     end
+
 end
 
 

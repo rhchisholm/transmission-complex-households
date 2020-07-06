@@ -78,5 +78,14 @@ This script:
 	vii. N = 500, no event-based migration, 50% effective intervention
 	viii. N = 500, with event-based migration, 50% effective intervention
 
-
+To regenerate figure 2, do the following steps in order:
+- Open simulator1nc.m
+- Comment lines 22-25 and 747-749
+- Uncomment line 52
+- Save simulator1nc.m
+- Run household_occupancy_and_age.m
+- Open simulator1nc.m
+- Unomment lines 22-25 and 747-749
+- Comment line 52
+- Save simulator1nc.m
 
