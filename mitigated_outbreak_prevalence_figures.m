@@ -15,6 +15,29 @@ fignames = {'N = 2500, no events','N = 2500, with events',...
 fignames_new = {'N = 2500, no events, 100% effective','N = 2500, with events, 100% effective',...
     'N = 500, no events, 100% effective','N = 500, with events, 100% effective'};
 
+% Overcrowded scenarios:
+S1 = [2500 358 1 0;
+    2500 358 0 0;
+    2500 358 1 1;
+    2500 358 0 1;
+    500 80 1 0;
+    500 80 0 0;
+    500 80 1 1;
+    500 80 0 1];
+
+% Less crowded scenarios:
+S2 = [2500 833 1 0;
+    2500 833 0 0;
+    2500 833 1 1;
+    2500 833 0 1;
+    500 160 1 0;
+    500 160 0 0;
+    500 160 1 1;
+    500 160 0 1];
+
+Output1 = zeros(48,17);
+Output2 = zeros(48,17);
+
 for j = 1:4
     ftitle =  fignames{j};
     ftitle = sprintf ( '%s%s', ftitle,'.fig');
@@ -23,9 +46,15 @@ end
 
 for k = 1:6
     
-    %fnamel = sprintf ( '%s%i%s', '../batch_events_int_new', k,'.mat');
-    fnamel = sprintf ( '%s%i%s', 'batch_int_S', k,'_100.mat');
+    fnamel = sprintf ( '%s%i%s', '../batch_events_int_new', k,'.mat');
+    %fnamel = sprintf ( '%s%i%s', 'batch_int_S', k,'_100.mat');
     load(fnamel)
+    
+    if k ==  1 || k == 2 || k == 4
+        S = S1;
+    else
+        S = S2;
+    end
     
     
     for j = 1:4
@@ -50,6 +79,13 @@ for k = 1:6
 
         FS = [OTO; OTO2];
         All = [QDO QTS; QDO2 QTS2];
+        
+        Rows = (k-1)*8 + ((2*j-1):2*j);
+        
+        Scen = [k;k];
+        SPs = S(((2*j-1):2*j),:);
+        
+        Output1(Rows,:) = [Scen SPs FS FS/1000*100 All];
 
         PP = zeros(100,1000);
         PP2 = PP;
@@ -128,8 +164,14 @@ end
 
 for k = 1:6
     
-    %fnamel = sprintf ( '%s%i%s', '../batch_events_int_new', k,'_50.mat');
-    fnamel = sprintf ( '%s%i%s', 'batch_int_S', k,'_50.mat');
+    if k ==  1 || k == 2 || k == 4
+        S = S1;
+    else
+        S = S2;
+    end
+    
+    fnamel = sprintf ( '%s%i%s', '../batch_events_int_new', k,'_50.mat');
+    %fnamel = sprintf ( '%s%i%s', 'batch_int_S', k,'_50.mat');
     load(fnamel)
     
     
@@ -155,6 +197,13 @@ for k = 1:6
 
         FS = [OTO; OTO2];
         All = [QDO QTS; QDO2 QTS2];
+        
+        Rows = (k-1)*8 + ((2*j-1):2*j);
+        
+        Scen = [k;k];
+        SPs = S(((2*j-1):2*j),:);
+        
+        Output2(Rows,:) = [Scen SPs FS FS/1000*100 All];
 
         PP = zeros(100,1000);
         PP2 = PP;
@@ -221,4 +270,43 @@ for j = 1:4
     filetitle = sprintf ( '%s%s', fignames_new2{j}, '.fig');
     savefig(filetitle)
 end
+
+Rownames = {'ScenarioSet','N','H','Fluid','Events',...
+    'NumOutbreaks','PercentOutbreaks',...
+    'DurOB2p5PC','DurOB25PC','DurOB50PC','DurOB75PC','DurOB97p5PC',...
+    'SizeOB2p5PC','SizeOB25PC','SizeOB50PC','SizeOB75PC','SizeOB97p5PC',...
+    'MedianPCReductionOBDur','MedianPCReductionOBSize'};
+
+% A1 = array2table(Output1,'VariableNames',Rownames);
+% filename = 'Outputs_mitigated_100.xlsx';
+% writetable(A1,filename)
+% save('Outputs_mitigated_100.mat','Output1')
+% 
+% A2 = array2table(Output2,'VariableNames',Rownames);
+% filename = 'Outputs_mitigated_50.xlsx';
+% writetable(A2,filename)
+% save('Outputs_mitigated_50.mat','Output2')
+
+load('Outputs_unmitigated.mat','Output')
+
+ReductionMedianDuration100 = 100 - Output1(:,10)./Output(:,10)*100;
+ReductionMedianDuration50 = 100 - Output2(:,10)./Output(:,10)*100;
+ReductionMedianSize100 = 100 - Output1(:,15)./Output(:,15)*100;
+ReductionMedianSize50 = 100 - Output2(:,15)./Output(:,15)*100;
+
+Output1B = [Output1 ReductionMedianDuration100 ReductionMedianSize100];
+Output2B = [Output2 ReductionMedianDuration50 ReductionMedianSize50];
+
+A1 = array2table(Output1B,'VariableNames',Rownames);
+filename = 'Outputs_mitigated_100.xlsx';
+writetable(A1,filename)
+save('Outputs_mitigated_100.mat','Output1B')
+
+A2 = array2table(Output2B,'VariableNames',Rownames);
+filename = 'Outputs_mitigated_50.xlsx';
+writetable(A2,filename)
+save('Outputs_mitigated_50.mat','Output2B')
+
+
+
 

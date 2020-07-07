@@ -11,13 +11,40 @@ ind = [1 2;3 4;5 6;7 8];
 
 fignames = {'N = 2500, no events','N = 2500, with events','N = 500, no events','N = 500, with events'};
 
-for k = 1:1
+% Overcrowded scenarios:
+S1 = [2500 358 1 0;
+    2500 358 0 0;
+    2500 358 1 1;
+    2500 358 0 1;
+    500 80 1 0;
+    500 80 0 0;
+    500 80 1 1;
+    500 80 0 1];
+
+% Less crowded scenarios:
+S2 = [2500 833 1 0;
+    2500 833 0 0;
+    2500 833 1 1;
+    2500 833 0 1;
+    500 160 1 0;
+    500 160 0 0;
+    500 160 1 1;
+    500 160 0 1];
+
+Output = zeros(48,17);
+
+for k = 1:6
     
-    %fnamel = sprintf ( '%s%i%s', '../batch_events_new', k,'.mat');
-    fnamel = sprintf ( '%s%i%s', 'batch_S', k,'.mat');
+    fnamel = sprintf ( '%s%i%s', '../batch_events_new', k,'.mat');
+    %fnamel = sprintf ( '%s%i%s', 'batch_S', k,'.mat');
     load(fnamel)
     
-    
+    if k ==  1 || k == 2 || k == 4
+        S = S1;
+    else
+        S = S2;
+    end
+        
     for j = 1:4
         
         figure(j)
@@ -37,9 +64,15 @@ for k = 1:1
         QTS2 = quantile(Incidence2(Incidence2>10),[0.025 0.25 0.50 0.75 0.975]);
         OTO = length(DurationOutbreak(Incidence>10));
         OTO2 = length(DurationOutbreak2(Incidence2>10));
-
+        
+        Rows = (k-1)*8 + ((2*j-1):2*j);
+        
+        Scen = [k;k];
+        SPs = S(((2*j-1):2*j),:);
         FS = [OTO; OTO2];
         All = [QDO QTS; QDO2 QTS2];
+        
+        Output(Rows,:) = [Scen SPs FS FS/1000*100 All];
 
         PP = zeros(100,1000);
         PP2 = PP;
@@ -105,4 +138,15 @@ for j = 1:4
     filetitle = sprintf ( '%s%s', fignames{j}, '.fig');
     savefig(filetitle)
 end
+
+Rownames = {'ScenarioSet','N','H','Fluid','Events',...
+    'NumOutbreaks','PercentOutbreaks',...
+    'DurOB2p5PC','DurOB25PC','DurOB50PC','DurOB75PC','DurOB97p5PC',...
+    'SizeOB2p5PC','SizeOB25PC','SizeOB50PC','SizeOB75PC','SizeOB97p5PC'};
+
+A = array2table(Output,'VariableNames',Rownames);
+filename = 'Outputs_unmitigated.xlsx';
+writetable(A,filename)
+
+save('Outputs_unmitigated.mat','Output')
 
