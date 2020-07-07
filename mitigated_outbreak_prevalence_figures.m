@@ -46,8 +46,8 @@ end
 
 for k = 1:6
     
-    fnamel = sprintf ( '%s%i%s', '../batch_events_int_new', k,'.mat');
-    %fnamel = sprintf ( '%s%i%s', 'batch_int_S', k,'_100.mat');
+    %fnamel = sprintf ( '%s%i%s', '../batch_events_int_new', k,'.mat');
+    fnamel = sprintf ( '%s%i%s', 'batch_int_S', k,'_100.mat');
     load(fnamel)
     
     if k ==  1 || k == 2 || k == 4
@@ -170,8 +170,8 @@ for k = 1:6
         S = S2;
     end
     
-    fnamel = sprintf ( '%s%i%s', '../batch_events_int_new', k,'_50.mat');
-    %fnamel = sprintf ( '%s%i%s', 'batch_int_S', k,'_50.mat');
+    %fnamel = sprintf ( '%s%i%s', '../batch_events_int_new', k,'_50.mat');
+    fnamel = sprintf ( '%s%i%s', 'batch_int_S', k,'_50.mat');
     load(fnamel)
     
     
@@ -276,16 +276,6 @@ Rownames = {'ScenarioSet','N','H','Fluid','Events',...
     'DurOB2p5PC','DurOB25PC','DurOB50PC','DurOB75PC','DurOB97p5PC',...
     'SizeOB2p5PC','SizeOB25PC','SizeOB50PC','SizeOB75PC','SizeOB97p5PC',...
     'MedianPCReductionOBDur','MedianPCReductionOBSize'};
-
-% A1 = array2table(Output1,'VariableNames',Rownames);
-% filename = 'Outputs_mitigated_100.xlsx';
-% writetable(A1,filename)
-% save('Outputs_mitigated_100.mat','Output1')
-% 
-% A2 = array2table(Output2,'VariableNames',Rownames);
-% filename = 'Outputs_mitigated_50.xlsx';
-% writetable(A2,filename)
-% save('Outputs_mitigated_50.mat','Output2')
 
 load('Outputs_unmitigated.mat','Output')
 

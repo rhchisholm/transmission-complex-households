@@ -35,8 +35,8 @@ Output = zeros(48,17);
 
 for k = 1:6
     
-    fnamel = sprintf ( '%s%i%s', '../batch_events_new', k,'.mat');
-    %fnamel = sprintf ( '%s%i%s', 'batch_S', k,'.mat');
+    %fnamel = sprintf ( '%s%i%s', '../batch_events_new', k,'.mat');
+    fnamel = sprintf ( '%s%i%s', 'batch_S', k,'.mat');
     load(fnamel)
     
     if k ==  1 || k == 2 || k == 4
