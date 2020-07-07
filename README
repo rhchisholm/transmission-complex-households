@@ -1,4 +1,4 @@
-This repository contains MATLAB code needed to generate all figures in Chisholm et al. “A model of population dynamics with complex household structure and mobility: implications for transmission and control of communicable diseases.”
+This repository contains MATLAB code needed to generate all figures and tables in Chisholm et al. “A model of population dynamics with complex household structure and mobility: implications for transmission and control of communicable diseases.”
 
 There are 48 transmission scenarios considered in the paper.  For each scenario, we generate 1000 samples from the parameter space using Latin Hypercube Sampling (LHS).  
 
