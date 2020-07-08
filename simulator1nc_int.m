@@ -376,7 +376,7 @@ function [AgentCharacteristics, parameters, numberfunerals] = aging(parameters,A
 
    % Include agents that are born
     NumberBirths = length(D);
-    parameters.numberdeaths = parameters.numberdeaths + NumberBirths;
+
     if NumberBirths > 0
 
         % Random numbers for household selection
