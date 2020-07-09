@@ -18,12 +18,10 @@ for k = 1:6
     I = zeros(NumberScenarios,NumberLHSSamples);
     P = cell(NumberScenarios,NumberLHSSamples);
     DO = zeros(NumberScenarios,NumberLHSSamples);
-    LHSsample = zeros(NumberScenarios,NumberLHSSamples,17);
 
     Incidence = zeros(NumberLHSSamples,1);
     DurationOutbreak = Incidence;
     Prev = cell(NumberLHSSamples,1);
-    LHSparams = zeros(NumberLHSSamples,17);
 
     for i = 1: NumberScenarios
         
@@ -41,14 +39,12 @@ for k = 1:6
             Prev{j}=SummaryStatistics.NumberInfectiousTime(SummaryStatistics.NumberInfectiousTime>0) ./ ...
                 SummaryStatistics.PopulationSizeTime(SummaryStatistics.NumberInfectiousTime>0);
             DurationOutbreak(j)= length(Prev{j});
-            LHSparams(j,:) = parameters.lhsinput;
 
         end
 
         I(i,:) = Incidence';
         P{i} = Prev;
         DO(i,:) = DurationOutbreak;
-        LHSsample(i,:,:) = LHSparams; 
         
         fnames = sprintf ( '%s%i%s%d', 'batch_int_S', k, '_', Effectiveness_intervention*100 );
         save(fnames,'I','P','DO');
