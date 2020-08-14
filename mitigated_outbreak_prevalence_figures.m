@@ -9,11 +9,13 @@ set(0,'DefaultAxesFontName','Arial')
 
 ind = [1 2;3 4;5 6;7 8];
 
-fignames = {'N = 2500, no events','N = 2500, with events',...
-            'N = 500, no events','N = 500, with events'};
+fignames = {'Figures/N = 2500, no events','Figures/N = 2500, with events',...
+            'Figures/N = 500, no events','Figures/N = 500, with events'};
         
-fignames_new = {'N = 2500, no events, 100% effective','N = 2500, with events, 100% effective',...
-    'N = 500, no events, 100% effective','N = 500, with events, 100% effective'};
+fignames_LHS = {'Figures/LHS_mitigated','Figures/LHS_unmitigated'};        
+        
+fignames_new = {'Figures/N = 2500, no events, 100% effective','Figures/N = 2500, with events, 100% effective',...
+    'Figures/N = 500, no events, 100% effective','Figures/N = 500, with events, 100% effective'};
 
 % Overcrowded scenarios:
 S1 = [2500 358 1 0;
@@ -37,6 +39,8 @@ S2 = [2500 833 1 0;
 
 Output1 = zeros(48,17);
 Output2 = zeros(48,17);
+LHSOutput1 = zeros(11,1000,48);
+LHSOutput2 = zeros(11,1000,48);
 
 for j = 1:4
     ftitle =  fignames{j};
@@ -49,6 +53,9 @@ for k = 1:6
     %fnamel = sprintf ( '%s%i%s', '../batch_events_int_new', k,'.mat');
     fnamel = sprintf ( '%s%i%s', 'batch_int_S', k,'_100.mat');
     load(fnamel)
+    
+    fnamel2 = sprintf ( '%s%i%s', 'Initialisation_S', k,'.mat');
+    load(fnamel2,'pmaster')
     
     if k ==  1 || k == 2 || k == 4
         S = S1;
@@ -66,9 +73,20 @@ for k = 1:6
         Prev = P{index1};
         Incidence = I(index1,:);
         DurationOutbreak = DO(index1,:);
+        lhsparams1=zeros(9,1000);
+        for l = 1:1000
+            params1 = pmaster{index1,l};      
+            lhsparams1(:,l) = params1.lhsinput;
+        end
+        
         Prev2 = P{index2};
         Incidence2 = I(index2,:);
         DurationOutbreak2 = DO(index2,:);
+        lhsparams2=zeros(9,1000);
+        for l = 1:1000
+            params2 = pmaster{index2,l};      
+            lhsparams2(:,l) = params2.lhsinput;
+        end       
 
         QDO = quantile(DurationOutbreak(Incidence>10),[0.025 0.25 0.50 0.75 0.975]);
         QTS = quantile(Incidence(Incidence>10),[0.025 0.25 0.50 0.75 0.975]);
@@ -106,6 +124,15 @@ for k = 1:6
             end
 
         end
+        
+        % LHS param vs final size and vs outbreak duration
+        threshold = -1;
+        LHSOutput1(1:9,:,(k-1)*8+index1)=lhsparams1(:,Incidence>threshold);
+        LHSOutput1(10,:,(k-1)*8+index1)=Incidence(Incidence>threshold);
+        LHSOutput1(11,:,(k-1)*8+index1)=DurationOutbreak(Incidence>threshold);
+        LHSOutput1(1:9,:,(k-1)*8+index2)=lhsparams2(:,Incidence2>threshold);
+        LHSOutput1(10,:,(k-1)*8+index2)=Incidence2(Incidence2>threshold);
+        LHSOutput1(11,:,(k-1)*8+index2)=DurationOutbreak2(Incidence2>threshold);
 
         QPP = quantile(PP(:,1:count-1)',[0.025 0.25 0.50 0.75 0.975]);
         QPP2 = quantile(PP2(:,1:count2-1)',[0.025 0.25 0.50 0.75 0.975]);
@@ -153,8 +180,8 @@ for j = 1:4
     savefig(filetitle)
 end
 
-fignames_new2 = {'N = 2500, no events, 50% effective','N = 2500, with events, 50% effective',...
-    'N = 500, no events, 50% effective','N = 500, with events, 50% effective'};
+fignames_new2 = {'Figures/N = 2500, no events, 50% effective','Figures/N = 2500, with events, 50% effective',...
+    'Figures/N = 500, no events, 50% effective','Figures/N = 500, with events, 50% effective'};
 
 for j = 1:4
     ftitle =  fignames{j};
@@ -174,6 +201,9 @@ for k = 1:6
     fnamel = sprintf ( '%s%i%s', 'batch_int_S', k,'_50.mat');
     load(fnamel)
     
+    fnamel2 = sprintf ( '%s%i%s', 'Initialisation_S', k,'.mat');
+    load(fnamel2,'pmaster')
+    
     
     for j = 1:4
         
@@ -184,9 +214,20 @@ for k = 1:6
         Prev = P{index1};
         Incidence = I(index1,:);
         DurationOutbreak = DO(index1,:);
+        lhsparams1=zeros(9,1000);
+        for l = 1:1000
+            params1 = pmaster{index1,l};      
+            lhsparams1(:,l) = params1.lhsinput;
+        end
+        
         Prev2 = P{index2};
         Incidence2 = I(index2,:);
         DurationOutbreak2 = DO(index2,:);
+        lhsparams2=zeros(9,1000);
+        for l = 1:1000
+            params2 = pmaster{index2,l};      
+            lhsparams2(:,l) = params2.lhsinput;
+        end
 
         QDO = quantile(DurationOutbreak(Incidence>10),[0.025 0.25 0.50 0.75 0.975]);
         QTS = quantile(Incidence(Incidence>10),[0.025 0.25 0.50 0.75 0.975]);
@@ -224,6 +265,15 @@ for k = 1:6
             end
 
         end
+        
+        threshold = -1;
+        % LHS param vs final size and vs outbreak duration
+        LHSOutput2(1:9,:,(k-1)*8+index1)=lhsparams1(:,Incidence>threshold);
+        LHSOutput2(10,:,(k-1)*8+index1)=Incidence(Incidence>threshold);
+        LHSOutput2(11,:,(k-1)*8+index1)=DurationOutbreak(Incidence>threshold);
+        LHSOutput2(1:9,:,(k-1)*8+index2)=lhsparams2(:,Incidence2>threshold);
+        LHSOutput2(10,:,(k-1)*8+index2)=Incidence2(Incidence2>threshold);
+        LHSOutput2(11,:,(k-1)*8+index2)=DurationOutbreak2(Incidence2>threshold);
 
         QPP = quantile(PP(:,1:count-1)',[0.025 0.25 0.50 0.75 0.975]);
         QPP2 = quantile(PP2(:,1:count2-1)',[0.025 0.25 0.50 0.75 0.975]);
@@ -277,7 +327,7 @@ Rownames = {'ScenarioSet','N','H','Fluid','Events',...
     'SizeOB2p5PC','SizeOB25PC','SizeOB50PC','SizeOB75PC','SizeOB97p5PC',...
     'MedianPCReductionOBDur','MedianPCReductionOBSize'};
 
-load('Outputs_unmitigated.mat','Output')
+load('Output_files/Outputs_unmitigated.mat','Output')
 
 ReductionMedianDuration100 = 100 - Output1(:,10)./Output(:,10)*100;
 ReductionMedianDuration50 = 100 - Output2(:,10)./Output(:,10)*100;
@@ -288,15 +338,265 @@ Output1B = [Output1 ReductionMedianDuration100 ReductionMedianSize100];
 Output2B = [Output2 ReductionMedianDuration50 ReductionMedianSize50];
 
 A1 = array2table(Output1B,'VariableNames',Rownames);
-filename = 'Outputs_mitigated_100.xlsx';
+filename = 'Output_files/Outputs_mitigated_100.xlsx';
 writetable(A1,filename)
-save('Outputs_mitigated_100.mat','Output1B')
+save('Output_files/Outputs_mitigated_100.mat','Output1B')
 
 A2 = array2table(Output2B,'VariableNames',Rownames);
-filename = 'Outputs_mitigated_50.xlsx';
+filename = 'Output_files/Outputs_mitigated_50.xlsx';
 writetable(A2,filename)
-save('Outputs_mitigated_50.mat','Output2B')
+save('Output_files/Outputs_mitigated_50.mat','Output2B')
 
+%Create LHS figures for mitigated and unmitigated scenarios
 
+th=10;
+load('Output_files/LHSOutput.mat','LHSOutput')
 
+ThresholdLHSOutputFSu = squeeze(LHSOutput(10,:,:));
+ThresholdLHSOutputODu = squeeze(LHSOutput(11,:,:));
+ThresholdLHSOutputFSm100 = squeeze(LHSOutput1(10,:,:));
+ThresholdLHSOutputODm100 = squeeze(LHSOutput1(11,:,:));
+ThresholdLHSOutputFSm50 = squeeze(LHSOutput2(10,:,:));
+ThresholdLHSOutputODm50 = squeeze(LHSOutput2(11,:,:));
+ThresholdLHS = LHSOutput(1:9,:,:);
+temp = ThresholdLHSOutputFSu;
+
+RFS100 = cell(48,5);
+RFS50 = cell(48,5);
+ROD100 = cell(48,5);
+ROD50 = cell(48,5);
+FS = cell(48,5);
+OD = cell(48,5);
+
+paramind = [1 8 9 6 7]; %qhat,q,alpha,1/sigma,1/gamma
+
+for k = 1:6
+    
+    for j = 1:4
+        
+        index1 = ind(j,1);
+        index2 = ind(j,2);
+        
+        for r = 1:5  
+
+            a = [];
+            b = [];
+            c = [];
+            
+            for i = 1:1000
+                
+                if ThresholdLHSOutputFSu(i,(k-1)*8+index1)>th
+                    
+                    b = [b; [LHSOutput(paramind(r),i,(k-1)*8+index1),...
+                        LHSOutput(10,i,(k-1)*8+index1)]];
+                    c = [c; [LHSOutput(paramind(r),i,(k-1)*8+index1),...
+                        LHSOutput(11,i,(k-1)*8+index1)]];
+                
+                end
+                
+                if ThresholdLHSOutputFSu(i,(k-1)*8+index1)>ThresholdLHSOutputFSm100(i,(k-1)*8+index1)
+                    
+                    ReductionFinalSize100 = 100 - ThresholdLHSOutputFSm100(i,(k-1)*8+index1)./ThresholdLHSOutputFSu(i,(k-1)*8+index1)*100;
+                    a = [a; [LHSOutput1(paramind(r),i,(k-1)*8+index1),...
+                        ReductionFinalSize100]];
+                
+                end
+            end
+            
+            RFS100{(k-1)*8+index1,r} = a;
+            FS{(k-1)*8+index1,r} = b;
+            OD{(k-1)*8+index1,r} = c;
+            
+            a = [];
+            b = [];
+            c = [];
+            
+            for i = 1:1000
+                
+                if ThresholdLHSOutputFSu(i,(k-1)*8+index2)>th
+                    
+                    b = [b; [LHSOutput(paramind(r),i,(k-1)*8+index2),...
+                        LHSOutput(10,i,(k-1)*8+index1)]];
+                    c = [c; [LHSOutput(paramind(r),i,(k-1)*8+index2),...
+                        LHSOutput(11,i,(k-1)*8+index2)]];
+                
+                end
+                
+                if ThresholdLHSOutputFSu(i,(k-1)*8+index2)>ThresholdLHSOutputFSm100(i,(k-1)*8+index2)
+                    
+                    ReductionFinalSize100 = 100 - ThresholdLHSOutputFSm100(i,(k-1)*8+index2)./ThresholdLHSOutputFSu(i,(k-1)*8+index2)*100;
+                    a = [a; [LHSOutput1(paramind(r),i,(k-1)*8+index2),...
+                        ReductionFinalSize100]];
+
+                end
+
+            end
+            
+            RFS100{(k-1)*8+index2,r} = a;
+            FS{(k-1)*8+index2,r} = b;
+            OD{(k-1)*8+index2,r} = c;
+            
+            a = [];
+            
+            for i = 1:1000
+                
+                if ThresholdLHSOutputFSu(i,(k-1)*8+index1)>ThresholdLHSOutputFSm50(i,(k-1)*8+index1)
+                    
+                    ReductionFinalSize50 = 100 - ThresholdLHSOutputFSm50(i,(k-1)*8+index1)./ThresholdLHSOutputFSu(i,(k-1)*8+index1)*100;
+                    a = [a; [LHSOutput2(paramind(r),i,(k-1)*8+index1),...
+                        ReductionFinalSize50]];
+
+                end
+                
+            end
+            
+            RFS50{(k-1)*8+index1,r} = a;
+            
+            a = [];
+            
+            for i = 1:1000
+                
+                if ThresholdLHSOutputFSu(i,(k-1)*8+index2)>ThresholdLHSOutputFSm50(i,(k-1)*8+index2)
+                    
+                    ReductionFinalSize50 = 100 - ThresholdLHSOutputFSm50(i,(k-1)*8+index2)./ThresholdLHSOutputFSu(i,(k-1)*8+index2)*100;
+                    a = [a; [LHSOutput2(paramind(r),i,(k-1)*8+index2),...
+                        ReductionFinalSize50]];
+
+                end
+                
+            end
+            
+            RFS50{(k-1)*8+index2,r} = a;
+
+        end
+        
+    end
+    
+end
+
+% Reduction final size 100% intervention
+% Combine LHS samples
+qhat_fluid = [RFS100{1,1};RFS100{9,1}];
+qhat_stable = [RFS100{2,1};RFS100{10,1}];
+q_fluid = [RFS100{1,2};RFS100{25,2}];
+q_stable = [RFS100{2,2};RFS100{26,2}];
+
+% Plot
+figure
+subplot(2,4,1)
+scatter(qhat_fluid(:,1),qhat_fluid(:,2),'filled')
+subplot(2,4,2)
+scatter(qhat_stable(:,1),qhat_stable(:,2),'filled')
+subplot(2,4,3)
+scatter(q_fluid(:,1),q_fluid(:,2),'filled')
+subplot(2,4,4)
+scatter(q_stable(:,1),q_stable(:,2),'filled')
+
+% Reduction final size 50% intervention
+% Combine LHS samples
+qhat_fluid = [RFS50{1,1};RFS50{9,1}];
+qhat_stable = [RFS50{2,1};RFS50{10,1}];
+q_fluid = [RFS50{1,2};RFS50{25,2}];
+q_stable = [RFS50{2,2};RFS50{26,2}];
+
+% Plot
+subplot(2,4,5)
+scatter(qhat_fluid(:,1),qhat_fluid(:,2),'filled')
+subplot(2,4,6)
+scatter(qhat_stable(:,1),qhat_stable(:,2),'filled')
+subplot(2,4,7)
+scatter(q_fluid(:,1),q_fluid(:,2),'filled')
+subplot(2,4,8)
+scatter(q_stable(:,1),q_stable(:,2),'filled')
+
+% Link axes across subplots
+ax1=[];
+ax2=[];
+ax3=[];
+for i=1:8
+    ax1 =[ax1, subplot(2, 4, i)];
+    if i == 1 || i == 2 || i == 5 || i == 6
+        ax2 =[ax2, subplot(2, 4, i)];
+    else
+        ax3 =[ax3, subplot(2, 4, i)];
+    end
+    if i == 5 || i == 6
+        %xlabel('Relative contact intensity in houses')
+    elseif i == 7 || i == 8
+        %xlabel('Transmissibility')
+    end
+end
+linkaxes(ax1, 'y');
+linkaxes(ax2, 'x');
+linkaxes(ax3, 'x');
+
+% Save figure
+filetitle = sprintf ( '%s%s', fignames_LHS{1}, '.fig');
+savefig(filetitle)
+
+% Final size, unmitigated 
+% Combine LHS samples
+qhat_fluid = [FS{1,1};FS{9,1}];
+qhat_stable = [FS{2,1};FS{10,1}];
+q_fluid = [FS{1,2};FS{25,2}];
+q_stable = [FS{2,2};FS{26,2}];
+
+% Plot
+figure
+subplot(2,4,1)
+scatter(qhat_fluid(:,1),qhat_fluid(:,2),'filled')
+subplot(2,4,2)
+scatter(qhat_stable(:,1),qhat_stable(:,2),'filled')
+subplot(2,4,3)
+scatter(q_fluid(:,1),q_fluid(:,2),'filled')
+subplot(2,4,4)
+scatter(q_stable(:,1),q_stable(:,2),'filled')
+
+% Outbreak duration, unmitigated 
+% Combine LHS samples
+qhat_fluid = [OD{1,1};OD{9,1}];
+qhat_stable = [OD{2,1};OD{10,1}];
+q_fluid = [OD{1,2};OD{25,2}];
+q_stable = [OD{2,2};OD{26,2}];
+
+% Plot
+subplot(2,4,5)
+scatter(qhat_fluid(:,1),qhat_fluid(:,2),'filled')
+subplot(2,4,6)
+scatter(qhat_stable(:,1),qhat_stable(:,2),'filled')
+subplot(2,4,7)
+scatter(q_fluid(:,1),q_fluid(:,2),'filled')
+subplot(2,4,8)
+scatter(q_stable(:,1),q_stable(:,2),'filled')
+
+% Link axes across subplots
+ax =[];
+ax1=[];
+ax2=[];
+ax3=[];
+for i=1:8
+    if i<5
+        ax1 =[ax1, subplot(2, 4, i)];
+    else
+        ax =[ax, subplot(2, 4, i)];
+    end
+    if i == 1 || i == 2 || i == 5 || i == 6
+        ax2 =[ax2, subplot(2, 4, i)];
+    else
+        ax3 =[ax3, subplot(2, 4, i)];
+    end
+    if i == 5 || i == 6
+        %xlabel('Relative contact intensity in houses')
+    elseif i == 7 || i == 8
+        %xlabel('Transmissibility')
+    end
+end
+linkaxes(ax, 'y');
+linkaxes(ax1, 'y');
+linkaxes(ax2, 'x');
+linkaxes(ax3, 'x');
+
+% Save figure
+filetitle = sprintf ( '%s%s', fignames_LHS{2}, '.fig');
+savefig(filetitle)
 
