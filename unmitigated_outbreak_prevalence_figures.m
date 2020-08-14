@@ -9,7 +9,9 @@ set(0,'DefaultAxesFontName','Arial')
 
 ind = [1 2;3 4;5 6;7 8];
 
-fignames = {'N = 2500, no events','N = 2500, with events','N = 500, no events','N = 500, with events'};
+
+
+fignames = {'Figures/N = 2500, no events','Figures/N = 2500, with events','Figures/N = 500, no events','Figures/N = 500, with events'};
 
 % Overcrowded scenarios:
 S1 = [2500 358 1 0;
@@ -32,12 +34,16 @@ S2 = [2500 833 1 0;
     500 160 0 1];
 
 Output = zeros(48,17);
+LHSOutput = zeros(11,1000,48);
 
 for k = 1:6
     
     %fnamel = sprintf ( '%s%i%s', '../batch_events_new', k,'.mat');
     fnamel = sprintf ( '%s%i%s', 'batch_S', k,'.mat');
     load(fnamel)
+    
+    fnamel2 = sprintf ( '%s%i%s', 'Initialisation_S', k,'.mat');
+    load(fnamel2,'pmaster')
     
     if k ==  1 || k == 2 || k == 4
         S = S1;
@@ -47,23 +53,35 @@ for k = 1:6
         
     for j = 1:4
         
-        figure(j)
+        
         index1 = ind(j,1);
         index2 = ind(j,2);
         
         Prev = P{index1};
         Incidence = I(index1,:);
         DurationOutbreak = DO(index1,:);
+        lhsparams1=zeros(9,1000);
+        for l = 1:1000
+            params1 = pmaster{index1,l};      
+            lhsparams1(:,l) = params1.lhsinput;
+        end
+        
         Prev2 = P{index2};
         Incidence2 = I(index2,:);
         DurationOutbreak2 = DO(index2,:);
-
-        QDO = quantile(DurationOutbreak(Incidence>10),[0.025 0.25 0.50 0.75 0.975]);
-        QTS = quantile(Incidence(Incidence>10),[0.025 0.25 0.50 0.75 0.975]);
-        QDO2 = quantile(DurationOutbreak2(Incidence2>10),[0.025 0.25 0.50 0.75 0.975]);
-        QTS2 = quantile(Incidence2(Incidence2>10),[0.025 0.25 0.50 0.75 0.975]);
-        OTO = length(DurationOutbreak(Incidence>10));
-        OTO2 = length(DurationOutbreak2(Incidence2>10));
+        lhsparams2=zeros(9,1000);
+        for l = 1:1000
+            params2 = pmaster{index2,l};      
+            lhsparams2(:,l) = params2.lhsinput;
+        end
+        
+        threshold=10;
+        QDO = quantile(DurationOutbreak(Incidence>threshold),[0.025 0.25 0.50 0.75 0.975]);
+        QTS = quantile(Incidence(Incidence>threshold),[0.025 0.25 0.50 0.75 0.975]);
+        QDO2 = quantile(DurationOutbreak2(Incidence2>threshold),[0.025 0.25 0.50 0.75 0.975]);
+        QTS2 = quantile(Incidence2(Incidence2>threshold),[0.025 0.25 0.50 0.75 0.975]);
+        OTO = length(DurationOutbreak(Incidence>threshold));
+        OTO2 = length(DurationOutbreak2(Incidence2>threshold));
         
         Rows = (k-1)*8 + ((2*j-1):2*j);
         
@@ -78,7 +96,7 @@ for k = 1:6
         PP2 = PP;
         count= 1;
         for i =1:1000
-            if Incidence(i)>10
+            if Incidence(i)>threshold
                 PP(1:length(Prev{i}),count) = Prev{i};
                 count=count+1;
             end
@@ -87,13 +105,40 @@ for k = 1:6
 
         count2= 1;
         for i =1:1000
-            if Incidence2(i)>10
+            if Incidence2(i)>threshold
                 PP2(1:length(Prev2{i}),count2) = Prev2{i};
                 count2=count2+1;
             end
 
         end
-
+        
+        threshold = -1;
+        paramind = [1 8 9 6 7]; %qhat,q,alpha,1/sigma,1/gamma
+        % Figures: LHS param vs final size
+        for r = 1:5           
+            figure(99+r)
+            subplot(6,8,(k-1)*8+index1)
+            plot(lhsparams1(paramind(r),Incidence>threshold),Incidence(Incidence>threshold),'.b')
+            subplot(6,8,(k-1)*8+index2)
+            plot(lhsparams2(paramind(r),Incidence2>threshold),Incidence2(Incidence2>threshold),'.b')
+            drawnow
+        end
+        % Figures: LHS param vs duration outbreak
+        for r = 1:5           
+            figure(199+r)
+            subplot(6,8,(k-1)*8+index1)
+            plot(lhsparams1(paramind(r),Incidence>threshold),DurationOutbreak(Incidence>threshold),'.b')
+            subplot(6,8,(k-1)*8+index2)
+            plot(lhsparams2(paramind(r),Incidence2>threshold),DurationOutbreak2(Incidence2>threshold),'.b')
+            drawnow
+        end
+        LHSOutput(1:9,:,(k-1)*8+index1)=lhsparams1(:,Incidence>threshold);
+        LHSOutput(10,:,(k-1)*8+index1)=Incidence(Incidence>threshold);
+        LHSOutput(11,:,(k-1)*8+index1)=DurationOutbreak(Incidence>threshold);
+        LHSOutput(1:9,:,(k-1)*8+index2)=lhsparams2(:,Incidence2>threshold);
+        LHSOutput(10,:,(k-1)*8+index2)=Incidence2(Incidence2>threshold);
+        LHSOutput(11,:,(k-1)*8+index2)=DurationOutbreak2(Incidence2>threshold);
+        
         QPP = quantile(PP(:,1:count-1)',[0.025 0.25 0.50 0.75 0.975]);
         QPP2 = quantile(PP2(:,1:count2-1)',[0.025 0.25 0.50 0.75 0.975]);
         y1 = QPP(3,:)*100;
@@ -108,6 +153,7 @@ for k = 1:6
         y_plot=[QPP(2,:), flipud(QPP(4,:)')']*100;
         y_plot2=[QPP2(2,:), flipud(QPP2(4,:)')']*100;
         
+        figure(j)
         subplot(2,3,k)
         plot(x_axis, y1, '-r', 'linewidth', 2)
         hold on
@@ -122,7 +168,7 @@ for k = 1:6
         %legend({'median, multi-hh model','50%CI, multi-hh model','median, single-hh model','50%CI, single-hh model'})
         xlabel('Time (days)')
         ylabel('Prevalence (%)')
-        %drawnow
+        drawnow
    
     end
 
@@ -139,14 +185,52 @@ for j = 1:4
     savefig(filetitle)
 end
 
+LHSfignames = {'qhat','q','alpha','sigma_inv','gamma_inv'};
+
+for j=0:4
+    figure(100+j)
+    ax1=[];
+    ax2=[];
+    for i=1:48
+        z=floor((i-1)/4);
+        if mod(z,2)==0
+            ax1 =[ax1, subplot(6, 8, i)];
+        else
+            ax2 =[ax2, subplot(6, 8, i)];
+        end
+    end
+    linkaxes(ax1, 'y');
+    linkaxes(ax2, 'y');
+    filetitle = sprintf ( '%s%s%s', 'Figures/LHS_',LHSfignames{j+1}, '.vs_Final_Size.fig');
+    savefig(filetitle)
+end
+
+for j=0:4
+    figure(200+j)
+    ax1=[];
+    ax2=[];
+    for i=1:48
+        z=floor((i-1)/4);
+        if mod(z,2)==0
+            ax1 =[ax1, subplot(6, 8, i)];
+        else
+            ax2 =[ax2, subplot(6, 8, i)];
+        end
+    end
+    linkaxes(ax1, 'y');
+    linkaxes(ax2, 'y');
+    filetitle = sprintf ( '%s%s%s', 'Figures/LHS_',LHSfignames{j+1}, '.vs_Duration_Outbreak.fig');
+    savefig(filetitle)
+end
+
 Rownames = {'ScenarioSet','N','H','Fluid','Events',...
     'NumOutbreaks','PercentOutbreaks',...
     'DurOB2p5PC','DurOB25PC','DurOB50PC','DurOB75PC','DurOB97p5PC',...
     'SizeOB2p5PC','SizeOB25PC','SizeOB50PC','SizeOB75PC','SizeOB97p5PC'};
 
 A = array2table(Output,'VariableNames',Rownames);
-filename = 'Outputs_unmitigated.xlsx';
+filename = 'Output_files/Outputs_unmitigated.xlsx';
 writetable(A,filename)
 
-save('Outputs_unmitigated.mat','Output')
-
+save('Output_files/Outputs_unmitigated.mat','Output')
+save('Output_files/LHSOutput.mat','LHSOutput')
